@@ -1,13 +1,76 @@
--- ============================================================
+-- ==
 -- Case Study: Danny's Diner Solutions
 -- Author: Samed
 -- Repository: SQL-Challenges
--- ============================================================
+-- ==
+
+-- Case Study #1: Danny's Diner
+-- Database Creation & Schema Setup
+
+-- 1. Create Database
+CREATE DATABASE DannysDiner;
+GO
+
+USE DannysDiner;
+GO
+
+-- 2. Create 'sales' table
+CREATE TABLE sales (
+  customer_id VARCHAR(1),
+  order_date DATE,
+  product_id INTEGER
+);
+
+-- Insert data into 'sales'
+INSERT INTO sales
+  (customer_id, order_date, product_id)
+VALUES
+  ('A', '2021-01-01', 1),
+  ('A', '2021-01-01', 2),
+  ('A', '2021-01-07', 2),
+  ('A', '2021-01-10', 3),
+  ('A', '2021-01-11', 3),
+  ('A', '2021-01-11', 3),
+  ('B', '2021-01-01', 2),
+  ('B', '2021-01-02', 2),
+  ('B', '2021-01-04', 1),
+  ('B', '2021-01-11', 1),
+  ('B', '2021-01-16', 3),
+  ('B', '2021-02-01', 3),
+  ('C', '2021-01-01', 3),
+  ('C', '2021-01-01', 3),
+  ('C', '2021-01-07', 3);
+
+-- 3. Create 'menu' table
+CREATE TABLE menu (
+  product_id INTEGER,
+  product_name VARCHAR(5),
+  price INTEGER
+);
+
+-- Insert data into 'menu'
+INSERT INTO menu
+  (product_id, product_name, price)
+VALUES
+  (1, 'sushi', 10),
+  (2, 'curry', 15),
+  (3, 'ramen', 12);
+
+-- 4. Create 'members' table
+CREATE TABLE members (
+  customer_id VARCHAR(1),
+  join_date DATE
+);
+
+-- Insert data into 'members'
+INSERT INTO members
+  (customer_id, join_date)
+VALUES
+  ('A', '2021-01-07'),
+  ('B', '2021-01-09');
 
 
--- ------------------------------------------------------------
 -- Q1: What is the total amount each customer spent at the restaurant?
--- ------------------------------------------------------------
 SELECT 
     s.customer_id,
     SUM(m.price) AS total_amount_spent
@@ -17,10 +80,8 @@ LEFT JOIN menu m
 GROUP BY s.customer_id
 ORDER BY total_amount_spent DESC;
 
-
--- ------------------------------------------------------------
 -- Q2: How many days has each customer visited the restaurant?
--- ------------------------------------------------------------
+
 SELECT 
     customer_id,
     COUNT(DISTINCT order_date) AS total_visit_days
@@ -29,9 +90,7 @@ GROUP BY customer_id
 ORDER BY total_visit_days DESC;
 
 
--- ------------------------------------------------------------
 -- Q3: What was the first item from the menu purchased by each customer?
--- ------------------------------------------------------------
 -- Note: Handles tie cases using DENSE_RANK() if a customer ordered multiple items on their first visit.
 WITH ranked_orders AS (
     SELECT 
@@ -50,10 +109,7 @@ LEFT JOIN menu m
     ON r.product_id = m.product_id
 WHERE r.rnk = 1;
 
-
--- ------------------------------------------------------------
 -- Q4: What is the most purchased item on the menu and how many times was it purchased by all customers?
--- ------------------------------------------------------------
 WITH top_purchased_item AS (
     SELECT 
         product_id,
@@ -69,10 +125,7 @@ JOIN menu m
     ON t.product_id = m.product_id
 ORDER BY t.total_purchases DESC;
 
-
--- ------------------------------------------------------------
 -- Q5: Which item was the most popular for each customer?
--- ------------------------------------------------------------
 WITH customer_product_count AS (
     SELECT 
         customer_id,
@@ -97,10 +150,7 @@ LEFT JOIN menu m
     ON r.product_id = m.product_id
 WHERE r.rnk = 1;
 
-
--- ------------------------------------------------------------
 -- Q6: Which item was purchased first by the customer after they became a member?
--- ------------------------------------------------------------
 WITH orders_after_membership AS (
     SELECT 
         s.customer_id,
@@ -121,10 +171,7 @@ LEFT JOIN menu m
     ON o.product_id = m.product_id
 WHERE o.rnk = 1;
 
-
--- ------------------------------------------------------------
 -- Q7: Which item was purchased just before the customer became a member?
--- ------------------------------------------------------------
 WITH orders_before_membership AS (
     SELECT 
         s.customer_id,
@@ -145,10 +192,7 @@ LEFT JOIN menu m
     ON o.product_id = m.product_id
 WHERE o.rnk = 1;
 
-
--- ------------------------------------------------------------
 -- Q8: What is the total items and amount spent for each member before they became a member?
--- ------------------------------------------------------------
 WITH pre_membership_orders AS (
     SELECT 
         s.customer_id,
@@ -167,10 +211,7 @@ LEFT JOIN menu m
     ON p.product_id = m.product_id
 GROUP BY p.customer_id;
 
-
--- ------------------------------------------------------------
 -- Q9: If each $1 spent equates to 10 points and sushi has a 2x points multiplier - how many points would each customer have?
--- ------------------------------------------------------------
 WITH order_details AS (
     SELECT 
         s.customer_id,
